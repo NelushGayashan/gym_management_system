@@ -1,0 +1,30 @@
+	if(isset($_POST['submit']))
+            {
+                $search = $_POST['search'];
+                
+               
+				global $db;
+				$sql = "select * from gender where id='$search' OR gender='$search'";
+				
+				$result = mysqli_query($db->connection,$sql);
+				if (isset($_POST["ajax"])) { echo json_encode($results); }
+				
+						if (mysqli_num_rows($result) > 0)
+						{
+
+							
+							return $result;
+						}
+						else 
+						{ 
+							$this->set_messsage('<div class="alert alert-warning"> Nothing Found : ) Try Again! </div>'); 
+							$query = "select * from gender";
+							$result = mysqli_query($db->connection,$query);
+							
+							return $result;
+						}
+
+               
+            }
+			else
+			{

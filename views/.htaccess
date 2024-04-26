@@ -1,0 +1,2 @@
+ReWriteEngine On
+RewriteRule ^profile/([^/.]+)?$ /user.php?user_id=$1 [L]

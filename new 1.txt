@@ -1,0 +1,642 @@
+, 
+                    SUM(total_hours) as total_working_hours, count(id)*1000 as salary_for_working, (SUM(total_hours)-count(id)*5)*150 as deduction,
+                    (SUM(total_hours)-count(id)*5)*150 as incentives, count(id)*1000 + (SUM(total_hours)-count(id)*5)*150 as monthly_salary
+					
+					
+					
+					, date_format(date,'%Y - %M') as year_month, count(id) as working_days, 
+                    SUM(total_hours) as total_working_hours, count(id)*1000 as salary_for_working, (SUM(total_hours)-count(id)*5)*150 as deduction,
+                    (SUM(total_hours)-count(id)*5)*150 as incentives, count(id)*1000 + (SUM(total_hours)-count(id)*5)*150 as monthly_salary
+					
+					
+					
+					
+					
+DELIMITER $$
+CREATE TRIGGER monthly_salary_insert
+AFTER INSERT ON attendance
+FOR EACH ROW
+BEGIN
+
+
+INSERT INTO salary (staff_id, staff_member_name, month , working_days, total_working_hours, salary_for_working, extra,monthly_salary)
+				SELECT staff_id, staff_member_name, date_format(date,'%Y - %M'), count(id) , SUM(total_hours), count(id)*500 , (SUM(total_hours)-count(id)*5)*150,count(id)*500 + (SUM(total_hours)-count(id)*5)*150 FROM attendance group by staff_id,month(date)
+                order by staff_id,month(date);
+
+
+END$$
+DELIMITER ;
+
+
+
+
+
+DELIMITER $$
+CREATE TRIGGER monthly_salary_update
+AFTER update ON attendance
+FOR EACH ROW
+BEGIN
+UPDATE salary,attendance SET
+salary.staff_member_name=attendance.staff_member_name,
+salary.month=date_format(attendance.date,'%Y - %M'),
+salary.working_days=count(attendance.id),
+salary.total_working_hours=SUM(attendance.total_hours),
+salary.salary_for_working=count(attendance.id)*500,
+salary.extra=SUM(attendance.total_hours)-count(attendance.id)*5)*150,
+salary.monthly_salary=count(attendance.id)*500 + (SUM(attendance.total_hours)-count(attendance.id)*5)*150
+where salary.staff_id=attendance.staff_id group by attendance.staff_id,month(attendance.date)
+                order by attendance.staff_id,month(attendance.date);
+END$$
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- -----------------------------------------------------
+-- Table `Fitness_For_Everyone`.`monthly_expenses`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `Fitness_For_Everyone`.`monthly_expenses` (
+select year(date),date_format(date,'%M'),sum(amount)
+     from payment
+     group by year(date),date_format(date,'%M')
+     order by year(date),date_format(date,'%M'));
+
+
+
+-- -----------------------------------------------------
+-- Table `Fitness_For_Everyone`.`monthly_income`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `Fitness_For_Everyone`.`monthly_income` (
+select year(DATE),date_format(date,'%M'),sum(amount)
+     from membership_payment
+     group by year(date),date_format(date,'%M')
+     order by year(date),date_format(date,'%M'));
+
+
+
+
+INSERT INTO equipment_purchases (payment_id, payment_payment_type_id, cost, purchased_date, remark)
+SELECT id, payment_type_id, amount, DATE , remarks FROM payment WHERE STATUS = 'Equipment';
+
+
+INSERT INTO expenses (payment_id, payment_payment_type_id, amount, date, details)
+SELECT id, payment_type_id, amount, DATE , remarks FROM payment WHERE STATUS = 'Expense';
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DELIMITER $$
+CREATE TRIGGER expense_insert
+AFTER INSERT ON payment
+FOR EACH ROW
+BEGIN
+INSERT INTO expense(date,payment_id,payment_payment_type_id,amount)
+SELECT DATE,id,payment_type_id,amount FROM payment 
+WHERE STATUS='Expense';
+END$$
+DELIMITER ;
+
+
+
+DELIMITER $$
+CREATE TRIGGER expense_update
+AFTER UPDATE ON payment
+FOR EACH ROW
+BEGIN
+
+UPDATE expense,payment SET 
+expense.date = payment.date,
+expense.payment_payment_type_id = payment.payment_type_id,
+expense.amount=payment.amount
+WHERE payment.STATUS='Expense' AND expense.payment_id = payment.id;
+
+INSERT INTO expense(purchased_date,payment_id,payment_payment_type_id,amount)
+SELECT DATE,id,payment_type_id,amount FROM payment 
+WHERE STATUS='Expense';
+
+delete from expense WHERE STATUS='Expense' ;
+END$$
+DELIMITER ;
+
+
+
+DELIMITER $$
+create trigger expense_delete after DELETE  on payment
+  for each row
+   begin
+  
+     delete from expense where id=OLD.id ;
+
+
+END$$
+DELIMITER ;
+
+
+
+
+
+DELIMITER $$
+CREATE TRIGGER equipment_insert
+AFTER INSERT ON payment
+FOR EACH ROW
+BEGIN
+INSERT INTO equipment_purchases(purchased_date,payment_id,payment_payment_type_id)
+SELECT DATE,id,payment_type_id FROM payment 
+WHERE STATUS='Equipment';
+END$$
+DELIMITER ;
+
+
+
+
+
+DELIMITER $$
+CREATE TRIGGER equipment_update
+AFTER UPDATE ON payment
+FOR EACH ROW
+BEGIN
+
+UPDATE equipment_purchases,payment SET 
+equipment_purchases.purchased_date = payment.date,
+equipment_purchases.payment_payment_type_id = payment.payment_type_id
+WHERE payment.STATUS='Equipment' AND equipment_purchases.payment_id = payment.id;
+
+INSERT INTO equipment_purchases(purchased_date,payment_id,payment_payment_type_id)
+SELECT DATE,id,payment_type_id FROM payment 
+WHERE STATUS='Equipment';
+
+delete from equipment_purchases WHERE STATUS='Expense' ;
+END$$
+DELIMITER ;
+
+
+
+DELIMITER $$
+create trigger equipment_delete after DELETE  on payment
+  for each row
+   begin
+  
+     delete from equipment_purchases where id=OLD.id ;
+
+
+END$$
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DELIMITER $$
+CREATE TRIGGER overall_payment_insert
+AFTER INSERT ON payment
+FOR EACH ROW
+BEGIN
+
+
+INSERT INTO equipment_purchases(purchased_date,payment_id,payment_payment_type_id,cost)
+SELECT DATE,id,payment_type_id,amount FROM payment 
+WHERE STATUS='Equipment';
+
+
+INSERT INTO expense(date,payment_id,payment_payment_type_id,amount)
+SELECT DATE,id,payment_type_id,amount FROM payment 
+WHERE STATUS='Expense';
+END$$
+DELIMITER ;
+
+
+
+
+
+DELIMITER $$
+CREATE TRIGGER overall_payment_update
+AFTER UPDATE ON payment
+FOR EACH ROW
+BEGIN
+
+
+UPDATE equipment_purchases,payment SET 
+equipment_purchases.purchased_date = payment.date,
+equipment_purchases.payment_payment_type_id = payment.payment_type_id,
+equipment_purchases.cost=payment.amount
+WHERE payment.STATUS='Equipment' AND equipment_purchases.payment_id = payment.id;
+
+INSERT INTO equipment_purchases(purchased_date,payment_id,payment_payment_type_id,cost)
+SELECT DATE,id,payment_type_id,amount FROM payment 
+WHERE STATUS='Equipment';
+
+delete from equipment_purchases WHERE STATUS='Expense' ;
+
+
+
+
+UPDATE expense,payment SET 
+expense.date = payment.date,
+expense.payment_payment_type_id = payment.payment_type_id,
+expense.amount=payment.amount
+WHERE payment.STATUS='Expense' AND expense.payment_id = payment.id;
+
+INSERT INTO expense(purchased_date,payment_id,payment_payment_type_id,amount)
+SELECT DATE,id,payment_type_id,amount FROM payment 
+WHERE STATUS='Expense';
+
+delete from expense WHERE STATUS='Equipment' ;
+END$$
+DELIMITER ;
+
+
+
+
+
+
+DELIMITER $$
+create trigger overall_payment_delete after DELETE  on payment
+  for each row
+   begin
+  
+  
+  		delete from equipment_purchases where id=OLD.id ;
+     delete from expense where id=OLD.id ;
+
+
+END$$
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DELIMITER $$
+CREATE TRIGGER expense_insert
+AFTER INSERT ON payment
+FOR EACH ROW
+BEGIN
+INSERT INTO expenses(DATE,payment_id,payment_payment_type_id,amount)
+SELECT DATE,id,payment_type_id,amount FROM payment 
+WHERE status='Expense';
+END$$
+DELIMITER ;
+
+DELIMITER $$
+CREATE TRIGGER expense_update
+AFTER UPDATE ON payment
+FOR EACH ROW
+BEGIN
+
+UPDATE expenses,payment SET 
+expenses.date = payment.date,
+expenses.amount = payment.amount,
+expenses.payment_payment_type_id = payment.payment_type_id
+WHERE payment.status='Expense' AND expenses.payment_id = payment.id;
+
+INSERT INTO expenses(DATE,payment_id,payment_payment_type_id,amount)
+SELECT DATE,id,payment_type_id,amount FROM payment 
+WHERE status='Expense';
+
+delete from expenses WHERE status='Equipment' ;
+END$$
+DELIMITER ;
+
+DELIMITER $$
+create trigger expense_delete after DELETE  on payment
+  for each row
+   begin
+  
+     delete from expenses where id=OLD.id ;
+
+
+END$$
+DELIMITER ;
+
+
+
+
+,'select membership_payment-salary_payment-equipment_expenses-other_expenses'
+
+
+
+
+
+
+DELIMITER $$
+CREATE TRIGGER overall_payment_update
+AFTER UPDATE ON payment
+FOR EACH ROW
+BEGIN
+
+IF (status='Expense') then 
+UPDATE expenses,payment SET 
+expenses.date = payment.date,
+expenses.amount = payment.amount,
+expenses.payment_payment_type_id = payment.payment_type_id
+WHERE expenses.payment_id = payment.id;
+
+INSERT INTO expenses(DATE,payment_id,payment_payment_type_id,amount,status)
+VALUES (new.DATE,new.id,new.payment_type_id,new.amount,NEW.status)  ;
+
+delete from expenses WHERE status1='Equipment' ;
+END if ;
+
+
+IF (status='Equipment') then
+UPDATE equipment_purchases,payment SET 
+equipment_purchases.purchased_date = payment.date,
+equipment_purchases.cost = payment.amount,
+equipment_purchases.payment_payment_type_id = payment.payment_type_id
+WHERE equipment_purchases.payment_id = payment.id;
+
+INSERT INTO equipment_purchases(purchased_date,payment_id,payment_payment_type_id,cost,status)
+VALUES (new.DATE,new.id,new.payment_type_id,new.amount,NEW.status)  ;
+
+delete from equipment_purchases WHERE status1='Expense' ;
+END if ;
+
+END$$
+DELIMITER ;
+
+
+
+
+
+
+
+
+DROP TRIGGER schedule_insert_trigger;
+
+DELIMITER $$
+create trigger schedule_insert_trigger after INSERT  on customer_details
+  for each row
+   begin
+ IF (30<NEW.height<160 AND 30<NEW.weight<50)   then 
+   	insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 8*3, Flys Machine 8*3,Pull Over 8*3, Lat Pull Down 8*3, Shoulder Press 8*3, D/B Curl 8*3  Day 02-->  D/B Extension 8*3, Press Down 8*3, Squats 8*3, Leg Curl 8*3, Leg Extension 8*3, Calf 8*3 ');
+  
+   ELSEIF  (130<NEW.height<160 AND 50<NEW.weight) then 
+   	insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 10*3, Flys Machine 10*3,Pull Over 10*3, Lat Pull Down 10*3, Shoulder Press 10*3, D/B Curl 10*3  Day 02-->  D/B Extension 10*3, Press Down 10*3, Squats 10*3, Leg Curl 10*3, Leg Extension 10*3, Calf 10*3 ');
+   
+   ELSEIF  (160<NEW.height<170 AND 50<NEW.weight<60) then 
+   	insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 10*3, Flys Machine 10*3,Pull Over 10*3, Lat Pull Down 10*3, Shoulder Press 10*3, D/B Curl 10*3  Day 02-->  D/B Extension 10*3, Press Down 10*3, Squats 10*3, Leg Curl 10*3, Leg Extension 10*3, Calf 10*3 ');
+   
+     ELSEIF  (160<NEW.height<170 AND 60<NEW.weight)  then 
+   	insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3  Day 02-->  D/B Extension 12*3, Press Down 12*3, Squats 12*3, Leg Curl 12*3, Leg Extension 12*3, Calf 12*3 ');
+  
+   ELSEIF  (170<NEW.height<180 AND 60<NEW.weight)  then   
+   	insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3  Day 02-->  D/B Extension 12*3, Press Down 12*3, Squats 12*3, Leg Curl 12*3, Leg Extension 12*3, 	Calf 12*3 Day 03 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3');
+ 
+  ELSE  
+   	insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3  Day 02-->  D/B Extension 12*3, Press Down 12*3, Squats 12*3, Leg Curl 12*3, Leg Extension 12*3, 	Calf 12*3 Day 03 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3');
+   END if; 
+
+  
+
+END$$
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+DELIMITER $$
+create trigger schedule_insert_trigger after INSERT  on customer_details
+  for each row
+   begin
+ IF (130=NEW.height AND 130<NEW.height AND  NEW.height<160)   then 
+ 			IF (30=NEW.weight AND 30<NEW.weight AND NEW.weight<50)   then 
+ 			insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 5*3, Flys Machine 5*3,Pull Over 5*3, Lat Pull Down 5*3, Shoulder Press 5*3, D/B Curl 5*3  Day 02-->  D/B Extension 5*3, Press Down 5*3, Squats 5*3, Leg Curl 5*3, Leg Extension 5*3, Calf 5*3 ');
+  			END if; 
+  			
+  			IF (50=NEW.weight AND 50<NEW.weight)   then 
+  			insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 8*3, Flys Machine 8*3,Pull Over 8*3, Lat Pull Down 8*3, Shoulder Press 8*3, D/B Curl 8*3  Day 02-->  D/B Extension 8*3, Press Down 8*3, Squats 8*3, Leg Curl 8*3, Leg Extension 8*3, Calf 8*3 ');
+  			END if; 
+ END if;
+   
+   
+ IF (160=NEW.height AND 160<=NEW.height AND NEW.height<170) then 
+ 			IF (40=NEW.weight AND 40<NEW.weight AND NEW.weight<60)   then 
+			insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 10*3, Flys Machine 10*3,Pull Over 10*3, Lat Pull Down 10*3, Shoulder Press 10*3, D/B Curl 10*3  Day 02-->  D/B Extension 10*3, Press Down 10*3, Squats 10*3, Leg Curl 10*3, Leg Extension 10*3, Calf 10*3 ');
+ 			END if; 
+ 
+ 			IF (60=NEW.weight AND 60<NEW.weight)   then 
+			insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3  Day 02-->  D/B Extension 12*3, Press Down 12*3, Squats 12*3, Leg Curl 12*3, Leg Extension 12*3, Calf 12*3 ');
+ 			END if; 
+ END if; 
+    
+  
+ IF  (170=NEW.height AND 170<NEW.height AND NEW.height<180)  then   
+   	insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3  Day 02-->  D/B Extension 12*3, Press Down 12*3, Squats 12*3, Leg Curl 12*3, Leg Extension 12*3, 	Calf 12*3 Day 03 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3');
+ END if; 
+   
+   
+ IF  (180=NEW.height AND 180<NEW.height)  then  
+   	insert into schedule_details(customer_details_id,given_date,exercises) values (NEW.id,CURDATE(),'Day 01 --> Bench Press 15*3, Flys Machine 15*3,Pull Over 15*3, Lat Pull Down 15*3, Shoulder Press 15*3, D/B Curl 15*3  Day 02-->  D/B Extension 15*3, Press Down 15*3, Squats 15*3, Leg Curl 15*3, Leg Extension 15*3, 	Calf 15*3 Day 03 --> Bench Press 15*3, Flys Machine 15*3,Pull Over 15*3, Lat Pull Down 15*3, Shoulder Press 15*3, D/B Curl 15*3');
+ END if; 
+
+  
+
+END$$
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+DROP TRIGGER schedule_update_trigger;
+DELIMITER $$
+create trigger schedule_update_trigger after INSERT  on customer_details
+  for each row
+   begin
+   
+ IF (130<=NEW.height AND  NEW.height<160 )   then 
+ 			IF (30<=NEW.weight AND NEW.weight<50)   then 
+   					update schedule_details SET 
+   					given_date = CURDATE(),
+						exercises = ' Day 01 --> Bench Press 5*3, Flys Machine 5*3,Pull Over 5*3, Lat Pull Down 5*3, Shoulder Press 5*3, D/B Curl 5*3  Day 02-->  D/B Extension 5*3, Press Down 5*3, Squats 5*3, Leg Curl 5*3, Leg Extension 5*3, Calf 5*3 '
+						WHERE customer_details_id=new.id ;
+  			END if;
+  			IF ( 50<=NEW.weight)   then  
+   					update schedule_details SET 
+   					given_date = CURDATE(),
+						exercises = 'Day 01 --> Bench Press 8*3, Flys Machine 8*3,Pull Over 8*3, Lat Pull Down 8*3, Shoulder Press 8*3, D/B Curl 8*3  Day 02-->  D/B Extension 8*3, Press Down 8*3, Squats 8*3, Leg Curl 8*3, Leg Extension 8*3, Calf 8*3 '
+						WHERE customer_details_id=new.id ;
+  			END if;
+  END if;
+  
+  
+ IF (160<=NEW.height AND NEW.height<170) then 
+ 			IF (40<=NEW.weight AND NEW.weight<60)   then 
+   					update schedule_details SET 
+   					given_date = CURDATE(),
+						exercises = 'Day 01 --> Bench Press 10*3, Flys Machine 10*3,Pull Over 10*3, Lat Pull Down 10*3, Shoulder Press 10*3, D/B Curl 10*3  Day 02-->  D/B Extension 10*3, Press Down 10*3, Squats 10*3, Leg Curl 10*3, Leg Extension 10*3, Calf 10*3 '
+						WHERE customer_details_id=new.id ;
+  			END if;
+  			IF (60<=NEW.weight)   then 
+   					update schedule_details SET 
+   					given_date = CURDATE(),
+						exercises = 'Day 01 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3  Day 02-->  D/B Extension 12*3, Press Down 12*3, Squats 12*3, Leg Curl 12*3, Leg Extension 12*3, Calf 12*3 '
+						WHERE customer_details_id=new.id ;
+  			END if;
+  END if;
+  
+ IF  (170<=NEW.height AND NEW.height<180)  then  
+   		update schedule_details SET 
+   		given_date = CURDATE(),
+			exercises = 'Day 01 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3  Day 02-->  D/B Extension 12*3, Press Down 12*3, Squats 12*3, Leg Curl 12*3, Leg Extension 12*3, 	Calf 12*3 Day 03 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3'
+			WHERE customer_details_id=new.id ;
+  END if;
+  
+ IF  (180<=NEW.height)  then   
+   		update schedule_details SET 
+   		given_date = CURDATE(),
+			exercises = 'Day 01 --> Bench Press 15*3, Flys Machine 15*3,Pull Over 15*3, Lat Pull Down 15*3, Shoulder Press 15*3, D/B Curl 15*3  Day 02-->  D/B Extension 15*3, Press Down 15*3, Squats 15*3, Leg Curl 15*3, Leg Extension 15*3, 	Calf 15*3 Day 03 --> Bench Press 15*3, Flys Machine 15*3,Pull Over 15*3, Lat Pull Down 15*3, Shoulder Press 15*3, D/B Curl 15*3'
+			WHERE customer_details_id=new.id ;
+  END if;
+  
+  
+
+END$$
+DELIMITER ;
+
+
+
+
+
+DELIMITER $$
+create trigger customer_details after DELETE  on schedule_details
+  for each row
+   begin
+  
+     delete from schedule_details where id=OLD.id ;
+
+
+END$$
+DELIMITER ;
+
+
+
+
+
+
+DELIMITER $$
+create trigger schedule_update_trigger after INSERT  on customer_details
+  for each row
+   begin
+   
+ IF (130<=NEW.height AND  NEW.height<160 )   then 
+ 			IF (30<=NEW.weight AND NEW.weight<50)   then 
+   					update schedule_details SET 
+   					given_date = CURDATE(),
+						exercises = ' Day 01 --> Bench Press 5*3, Flys Machine 5*3,Pull Over 5*3, Lat Pull Down 5*3, Shoulder Press 5*3, D/B Curl 5*3  Day 02-->  D/B Extension 5*3, Press Down 5*3, Squats 5*3, Leg Curl 5*3, Leg Extension 5*3, Calf 5*3 '
+						WHERE customer_details_id=new.id ;
+  			END if;
+  			IF ( 50<=NEW.weight)   then  
+   					update schedule_details SET 
+   					given_date = CURDATE(),
+						exercises = 'Day 01 --> Bench Press 8*3, Flys Machine 8*3,Pull Over 8*3, Lat Pull Down 8*3, Shoulder Press 8*3, D/B Curl 8*3  Day 02-->  D/B Extension 8*3, Press Down 8*3, Squats 8*3, Leg Curl 8*3, Leg Extension 8*3, Calf 8*3 '
+						WHERE customer_details_id=new.id ;
+  			END if;
+  END if;
+  
+  
+ IF (160<=NEW.height AND NEW.height<170) then 
+ 			IF (40<=NEW.weight AND NEW.weight<60)   then 
+   					update schedule_details SET 
+   					given_date = CURDATE(),
+						exercises = 'Day 01 --> Bench Press 10*3, Flys Machine 10*3,Pull Over 10*3, Lat Pull Down 10*3, Shoulder Press 10*3, D/B Curl 10*3  Day 02-->  D/B Extension 10*3, Press Down 10*3, Squats 10*3, Leg Curl 10*3, Leg Extension 10*3, Calf 10*3 '
+						WHERE customer_details_id=new.id ;
+  			END if;
+  			IF (60<=NEW.weight)   then 
+   					update schedule_details SET 
+   					given_date = CURDATE(),
+						exercises = 'Day 01 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3  Day 02-->  D/B Extension 12*3, Press Down 12*3, Squats 12*3, Leg Curl 12*3, Leg Extension 12*3, Calf 12*3 '
+						WHERE customer_details_id=new.id ;
+  			END if;
+  END if;
+  
+ IF  (170<=NEW.height AND NEW.height<180)  then  
+   		update schedule_details SET 
+   		given_date = CURDATE(),
+			exercises = 'Day 01 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3  Day 02-->  D/B Extension 12*3, Press Down 12*3, Squats 12*3, Leg Curl 12*3, Leg Extension 12*3, 	Calf 12*3 Day 03 --> Bench Press 12*3, Flys Machine 12*3,Pull Over 12*3, Lat Pull Down 12*3, Shoulder Press 12*3, D/B Curl 12*3'
+			WHERE customer_details_id=new.id ;
+  END if;
+  
+ IF  (180<=NEW.height)  then   
+   		update schedule_details SET 
+   		given_date = CURDATE(),
+			exercises = 'Day 01 --> Bench Press 15*3, Flys Machine 15*3,Pull Over 15*3, Lat Pull Down 15*3, Shoulder Press 15*3, D/B Curl 15*3  Day 02-->  D/B Extension 15*3, Press Down 15*3, Squats 15*3, Leg Curl 15*3, Leg Extension 15*3, 	Calf 15*3 Day 03 --> Bench Press 15*3, Flys Machine 15*3,Pull Over 15*3, Lat Pull Down 15*3, Shoulder Press 15*3, D/B Curl 15*3'
+			WHERE customer_details_id=new.id ;
+  END if;
+  
+  
+
+END$$
+DELIMITER ;
