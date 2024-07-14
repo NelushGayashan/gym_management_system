@@ -1,0 +1,6 @@
+# .gitattributes
+
+# Set languages for GitHub Linguist
+*.php linguist-language=PHP
+*.js linguist-language=JavaScript
+*.ajax linguist-language=JavaScript
