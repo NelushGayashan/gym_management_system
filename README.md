@@ -5,16 +5,24 @@ Welcome to the Gym Management System designed for Fitness For Everyone Gym. This
 ## Table of Contents
 
 1. [Introduction](#introduction)
-2. [Installation](#installation)
-3. [Usage](#usage)
-4. [Features](#features)
-5. [Technologies Used](#technologies-used)
+2. [Technologies Used](#technologies-used)
+3. [Installation](#installation)
+4. [Usage](#usage)
+5. [Features](#features)
 6. [Contributing](#contributing)
 7. [License](#license)
 
 ## Introduction
 
 The Gym Management System is designed to streamline the daily operations of Fitness For Everyone Gym, enabling administrators and staff to manage staff, customer information, equipment, and generate reports effectively.
+
+## Technologies Used
+
+- **Backend:** PHP
+- **Frontend:** HTML, CSS, JavaScript (including jQuery, AJAX), Bootstrap
+- **Database:** MySQL
+- **Web Server:** Apache
+- **Development Environment:** XAMPP, Apache NetBeans IDE
 
 ## Installation
 
@@ -42,14 +50,6 @@ To utilize the Gym Management System:
 - **Reports:** Generate comprehensive reports on staff leaves, customer registrations, income, and equipment inventory.
 - **User-friendly Interface:** Responsive design using Bootstrap ensures a seamless user experience.
 
-## Technologies Used
-
-- **Backend:** PHP
-- **Frontend:** HTML, CSS, JavaScript (including jQuery, AJAX), Bootstrap
-- **Database:** MySQL
-- **Web Server:** Apache
-- **Development Environment:** XAMPP, Apache NetBeans IDE
-
 ## Contributing
 
 Contributions to enhance the Gym Management System are welcome! Please create an issue or submit a pull request if you have suggestions or find any bugs.
@@ -57,7 +57,3 @@ Contributions to enhance the Gym Management System are welcome! Please create an
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
-![Screenshot](https://github.com/NGFXavier/gym_management_system/assets/44164300/df966b4f-5275-466b-8ec5-7626940dff69)
-![Screenshot](https://github.com/NGFXavier/gym_management_system/assets/44164300/1b8de0a6-b42b-46b9-8f45-f787a0ff6b4a)
-![Screenshot](https://github.com/NGFXavier/gym_management_system/assets/44164300/8f414c5a-d68f-426e-b55f-a45334d40aa1)
