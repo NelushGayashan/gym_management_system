@@ -4,30 +4,35 @@ Welcome to the Gym Management System designed for Fitness For Everyone Gym. This
 
 ## Table of Contents
 
-- [Installation](#installation)
-- [Usage](#usage)
-- [Features](#features)
-- [Technologies Used](#technologies-used)
-- [Contributing](#contributing)
-- [License](#license)
+1. [Introduction](#introduction)
+2. [Installation](#installation)
+3. [Usage](#usage)
+4. [Features](#features)
+5. [Technologies Used](#technologies-used)
+6. [Contributing](#contributing)
+7. [License](#license)
+
+## Introduction
+
+The Gym Management System is designed to streamline the daily operations of Fitness For Everyone Gym, enabling administrators and staff to manage staff, customer information, equipment, and generate reports effectively.
 
 ## Installation
 
 To install the Gym Management System, follow these steps:
 
-1. Download and install [XAMPP](https://www.apachefriends.org/download.html) for your operating system.
-2. Start Apache and MySQL services using XAMPP control panel.
-3. Clone this repository or download and extract the files into the `htdocs` directory of your XAMPP installation (e.g., `C:\xampp\htdocs\`).
-4. Import the `Fitness_For_Everyone.sql` database file into your MySQL server using tools like HeidiSQL or phpMyAdmin.
-5. Update the database connection settings in `config.php` to match your MySQL configuration.
+1. **Download XAMPP:** Install [XAMPP](https://www.apachefriends.org/download.html) tailored for your operating system.
+2. **Start Services:** Launch Apache and MySQL services via the XAMPP control panel.
+3. **Clone Repository:** Clone or download the repository and extract files into `htdocs` (e.g., `C:\xampp\htdocs\`).
+4. **Database Setup:** Import the `Fitness_For_Everyone.sql` file into MySQL using tools like HeidiSQL or phpMyAdmin.
+5. **Configure Database:** Update `config.php` with your MySQL database connection settings.
 
 ## Usage
 
-To use the Gym Management System:
+To utilize the Gym Management System:
 
-1. Open your web browser and go to `https://localhost/test`.
-2. Log in with the provided admin credentials (username: `Dasun Santha`, password: `abc1234`).
-3. Navigate through the system using the intuitive menu to manage staff, customers, equipment, and generate reports.
+1. **Access System:** Navigate to `https://localhost/test` in your web browser.
+2. **Admin Login:** Use provided admin credentials (username: `Dasun Santha`, password: `abc1234`).
+3. **Navigate System:** Use the intuitive menu to manage staff, customers, equipment, and generate reports.
 
 ## Features
 
@@ -35,7 +40,7 @@ To use the Gym Management System:
 - **Customer Management:** Add, view, edit, and delete customer records.
 - **Equipment Tracking:** Monitor equipment status (in-use, out-of-use).
 - **Reports:** Generate comprehensive reports on staff leaves, customer registrations, income, and equipment inventory.
-- **User-friendly Interface:** Responsive design using Bootstrap for a seamless user experience.
+- **User-friendly Interface:** Responsive design using Bootstrap ensures a seamless user experience.
 
 ## Technologies Used
 
@@ -47,7 +52,7 @@ To use the Gym Management System:
 
 ## Contributing
 
-We welcome contributions to enhance the Gym Management System! If you have suggestions or find bugs, please create an issue or submit a pull request.
+Contributions to enhance the Gym Management System are welcome! Please create an issue or submit a pull request if you have suggestions or find any bugs.
 
 ## License
 
