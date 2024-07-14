@@ -54,6 +54,10 @@ To utilize the Gym Management System:
 
 Contributions to enhance the Gym Management System are welcome! Please create an issue or submit a pull request if you have suggestions or find any bugs.
 
+![Screenshot](https://github.com/NGFXavier/gym_management_system/assets/44164300/df966b4f-5275-466b-8ec5-7626940dff69)
+![Screenshot](https://github.com/NGFXavier/gym_management_system/assets/44164300/1b8de0a6-b42b-46b9-8f45-f787a0ff6b4a)
+![Screenshot](https://github.com/NGFXavier/gym_management_system/assets/44164300/8f414c5a-d68f-426e-b55f-a45334d40aa1)
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
