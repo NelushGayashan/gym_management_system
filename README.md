@@ -39,8 +39,8 @@ To use the Gym Management System:
 
 ## Technologies Used
 
-- **Frontend:** HTML, CSS, JavaScript, Bootstrap
 - **Backend:** PHP
+- **Frontend:** HTML, CSS, JavaScript (including jQuery, AJAX), Bootstrap
 - **Database:** MySQL
 - **Web Server:** Apache
 - **Development Environment:** XAMPP, Apache NetBeans IDE
